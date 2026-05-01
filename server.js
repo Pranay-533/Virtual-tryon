@@ -29,10 +29,14 @@ app.get('/checkout', (req, res) => res.sendFile(path.join(__dirname, 'public', '
 app.get('/order-confirmation', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checkout.html')));
 app.get('/my-orders', (req, res) => res.sendFile(path.join(__dirname, 'public', 'orders.html')));
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Virtual Try-On Server running at http://localhost:${PORT}`);
-  console.log(`\n📋 Demo Credentials:`);
-  console.log(`   Admin:    admin@tryon.com     / admin123`);
-  console.log(`   Retailer: retailer@tryon.com  / retailer123`);
-  console.log(`   Consumer: consumer@tryon.com  / consumer123\n`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Virtual Try-On Server running at http://localhost:${PORT}`);
+    console.log(`\n📋 Demo Credentials:`);
+    console.log(`   Admin:    admin@tryon.com     / admin123`);
+    console.log(`   Retailer: retailer@tryon.com  / retailer123`);
+    console.log(`   Consumer: consumer@tryon.com  / consumer123\n`);
+  });
+}
+
+module.exports = app;

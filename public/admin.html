@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Panel — FitMirror</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+body { padding-top: 68px; background: var(--cream); }
+.admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 68px); }
+.admin-sidebar {
+  background: #111;
+  padding: 28px 0;
+  position: sticky; top: 68px; height: calc(100vh - 68px);
+}
+.sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-brand p { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+.sidebar-brand h3 { font-family: var(--font-serif); font-size: 1.1rem; color: var(--cream); font-weight: 300; }
+.s-menu { padding: 16px 0; }
+.s-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 24px;
+  font-size: 0.82rem; color: rgba(250,247,242,0.45);
+  cursor: pointer; transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.s-item:hover { color: var(--cream); background: rgba(255,255,255,0.03); }
+.s-item.active { color: var(--cream); border-left-color: var(--gold); background: rgba(255,255,255,0.04); }
+.s-badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 0.65rem; padding: 1px 7px; border-radius: 10px; }
+
+.admin-main { padding: 36px 48px; }
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.25s ease; }
+.page-hd { margin-bottom: 28px; }
+.page-hd h2 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--dark); }
+.page-hd p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
+.stat-box { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
+.stat-box .val { font-family: var(--font-serif); font-size: 2rem; font-weight: 300; color: var(--dark); }
+.stat-box .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 4px; }
+
+.table-wrap { background: #fff; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
+.table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.table-header h3 { font-family: var(--font-serif); font-size: 1.05rem; color: var(--dark); font-weight: 500; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
+td { padding: 11px 16px; font-size: 0.83rem; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--ivory); }
+.action-btns { display: flex; gap: 6px; }
+
+.pending-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 20px 22px;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.pending-card:hover { border-color: var(--gold); }
+.pending-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--ivory); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-size: 1rem; color: var(--warm);
+  flex-shrink: 0;
+}
+.pending-info { flex: 1; }
+.pending-info strong { display: block; font-size: 0.9rem; color: var(--dark); margin-bottom: 2px; }
+.pending-info span { font-size: 0.78rem; color: var(--muted); }
+.empty-msg { padding: 32px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 900px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-sidebar { display: none; }
+  .admin-main { padding: 20px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Fit<span>Mirror</span></a>
+  <div class="nav-links">
+    <span style="font-size:0.78rem;color:var(--muted);">Admin Panel</span>
+    <a href="#" onclick="logout()">Sign Out</a>
+  </div>
+</nav>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      <p>Admin Panel</p>
+      <h3>FitMirror</h3>
+    </div>
+    <nav class="s-menu">
+      <div class="s-item active" onclick="showPage('overview',this)">◈ Overview</div>
+      <div class="s-item" onclick="showPage('pending',this)" id="s-pending">◉ Pending Approvals <span class="s-badge" id="pending-badge">0</span></div>
+      <div class="s-item" onclick="showPage('users',this)">◎ All Users</div>
+      <div class="s-item" onclick="showPage('products',this)">◫ Products</div>
+      <div class="s-item" style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;" onclick="logout()">↩ Sign Out</div>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="page-hd"><h2>Dashboard</h2><p>Platform overview and quick actions</p></div>
+      <div class="stats-row" id="stats-row">
+        <div class="stat-box"><div class="val">—</div><div class="lbl">Total users</div></div>
+        <div class="stat-box"><div class="val">—</div><div class="lbl">Consumers</div></div>
+        <div class="stat-box"><div class="val">—</div><div class="lbl">Retailers</div></div>
+        <div class="stat-box"><div class="val">—</div><div class="lbl">Pending</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><h3>Pending approvals</h3><button class="btn btn-sm btn-outline" onclick="showPage('pending',document.querySelector('.s-item:nth-child(2))'))">View all →</button></div>
+        <div id="overview-pending"></div>
+      </div>
+    </div>
+
+    <!-- PENDING -->
+    <div class="page" id="page-pending">
+      <div class="page-hd"><h2>Pending Approvals</h2><p>Review and approve retailers and designers</p></div>
+      <div id="pending-list"></div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="page-hd"><h2>All Users</h2><p>Manage platform users</p></div>
+      <div class="table-wrap">
+        <div class="table-header"><h3>User list</h3></div>
+        <div style="overflow-x:auto;">
+          <table id="users-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Action</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="page" id="page-products">
+      <div class="page-hd"><h2>All Products</h2><p>Products listed on the platform</p></div>
+      <div class="table-wrap">
+        <div class="table-header"><h3>Product list</h3></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Name</th><th>Retailer</th><th>Category</th><th>Style</th><th>Price</th><th>Action</th></tr></thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (!token || !user || user.role !== 'admin') location.href = '/login';
+
+function logout() { localStorage.clear(); location.href = '/login'; }
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.s-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'users') loadUsers();
+  if (id === 'products') loadProducts();
+  if (id === 'pending') loadPending();
+}
+
+const H = () => ({ Authorization: 'Bearer ' + token });
+
+async function loadStats() {
+  const res = await fetch('/api/admin/stats', { headers: H() });
+  const s = await res.json();
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-box"><div class="val">${s.totalUsers}</div><div class="lbl">Total users</div></div>
+    <div class="stat-box"><div class="val">${s.consumers}</div><div class="lbl">Consumers</div></div>
+    <div class="stat-box"><div class="val">${s.retailers + s.designers}</div><div class="lbl">Retailers & Designers</div></div>
+    <div class="stat-box"><div class="val">${s.pending}</div><div class="lbl">Pending</div></div>
+  `;
+  document.getElementById('pending-badge').textContent = s.pending;
+  loadOverviewPending();
+}
+
+async function loadOverviewPending() {
+  const res = await fetch('/api/admin/pending', { headers: H() });
+  const list = await res.json();
+  const el = document.getElementById('overview-pending');
+  if (!list.length) { el.innerHTML = '<div class="empty-msg">No pending approvals ✓</div>'; return; }
+  el.innerHTML = list.slice(0,3).map(u => pendingCard(u)).join('');
+}
+
+async function loadPending() {
+  const res = await fetch('/api/admin/pending', { headers: H() });
+  const list = await res.json();
+  const el = document.getElementById('pending-list');
+  if (!list.length) { el.innerHTML = '<div class="empty-msg">No pending approvals — all clear!</div>'; return; }
+  el.innerHTML = list.map(u => pendingCard(u)).join('');
+}
+
+function pendingCard(u) {
+  return `
+    <div class="pending-card" id="card-${u.id}">
+      <div class="pending-avatar">${u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>
+      <div class="pending-info">
+        <strong>${u.name}</strong>
+        <span>${u.email} · <span class="badge badge-gold">${u.role}</span> ${u.brandName ? '· ' + u.brandName : ''}</span>
+      </div>
+      <div class="action-btns">
+        <button class="btn btn-sm" style="background:#2d7a4f;color:#fff;" onclick="approveUser(${u.id})">Approve</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectUser(${u.id})">Reject</button>
+      </div>
+    </div>`;
+}
+
+async function approveUser(id) {
+  await fetch('/api/admin/users/' + id + '/approve', { method: 'PUT', headers: H() });
+  loadStats(); loadPending();
+}
+async function rejectUser(id) {
+  if (!confirm('Reject this user?')) return;
+  await fetch('/api/admin/users/' + id + '/reject', { method: 'PUT', headers: H() });
+  loadStats(); loadPending();
+}
+
+async function loadUsers() {
+  const res = await fetch('/api/admin/users', { headers: H() });
+  const users = await res.json();
+  document.getElementById('users-tbody').innerHTML = users.map(u => `
+    <tr>
+      <td>${u.name}</td>
+      <td style="font-size:0.78rem;">${u.email}</td>
+      <td><span class="badge badge-warm">${u.role}</span></td>
+      <td><span class="badge ${u.status === 'active' || u.status === 'approved' ? 'badge-green' : u.status === 'pending' ? 'badge-gold' : 'badge-accent'}">${u.status}</span></td>
+      <td style="font-size:0.78rem;color:var(--muted);">${new Date(u.createdAt).toLocaleDateString()}</td>
+      <td>
+        ${u.status === 'pending' ? `<button class="btn btn-sm" style="background:#2d7a4f;color:#fff;" onclick="approveUser(${u.id});loadUsers()">Approve</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+async function loadProducts() {
+  const res = await fetch('/api/products');
+  const products = await res.json();
+  document.getElementById('products-tbody').innerHTML = products.map(p => `
+    <tr>
+      <td>${p.name}</td>
+      <td style="font-size:0.78rem;">${p.retailerName}</td>
+      <td><span class="badge badge-warm">${p.category}</span></td>
+      <td>${p.style}</td>
+      <td>₹${p.price.toLocaleString()}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="delProduct(${p.id})">Remove</button></td>
+    </tr>`).join('');
+}
+
+async function delProduct(id) {
+  if (!confirm('Remove this product?')) return;
+  await fetch('/api/products/' + id, { method: 'DELETE', headers: H() });
+  loadProducts();
+}
+
+loadStats();
+</script>
+</body>
+</html>

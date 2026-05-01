@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Orders — FitMirror</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+body { padding-top: 68px; background: var(--cream); }
+.orders-page { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+.orders-header { margin-bottom: 32px; }
+.orders-header h1 { font-family: var(--font-serif); font-size: 2.2rem; font-weight: 300; color: var(--dark); }
+.orders-header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+.order-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 6px;
+  margin-bottom: 16px; overflow: hidden; transition: border-color 0.2s;
+}
+.order-card:hover { border-color: var(--gold); }
+.order-card-header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  padding: 18px 24px; border-bottom: 1px solid var(--border); background: var(--ivory);
+  cursor: pointer;
+}
+.order-id { font-family: var(--font-serif); font-size: 1.1rem; color: var(--dark); font-weight: 500; }
+.order-date { font-size: 0.75rem; color: var(--muted); }
+.order-header-right { display: flex; align-items: center; gap: 12px; }
+.order-total { font-family: var(--font-serif); font-size: 1.1rem; color: var(--dark); font-weight: 500; }
+.order-status-badge { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; }
+.status-confirmed { background: rgba(74,140,96,0.12); color: #2d7a4f; }
+.status-pending { background: var(--gold-light); color: var(--warm); }
+.status-delivered { background: rgba(74,140,96,0.2); color: #1a5c30; }
+.chevron { font-size: 0.8rem; color: var(--muted); transition: transform 0.25s; }
+.order-card.open .chevron { transform: rotate(180deg); }
+
+.order-card-body { display: none; padding: 0; }
+.order-card.open .order-card-body { display: block; animation: fadeIn 0.25s ease; }
+
+.order-items { padding: 20px 24px; }
+.order-item {
+  display: grid; grid-template-columns: 56px 1fr auto; gap: 14px;
+  align-items: center; padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.order-item:last-child { border-bottom: none; }
+.oi-img {
+  width: 56px; height: 68px; border-radius: 4px; overflow: hidden;
+  background: var(--ivory); display: flex; align-items: center; justify-content: center;
+}
+.oi-img img { width: 100%; height: 100%; object-fit: cover; }
+.oi-info .oi-name { font-size: 0.9rem; color: var(--dark); font-weight: 400; }
+.oi-info .oi-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.oi-price { font-family: var(--font-serif); font-size: 0.95rem; color: var(--dark); white-space: nowrap; }
+
+.order-details-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  padding: 20px 24px; border-top: 1px solid var(--border); background: var(--ivory);
+}
+.detail-block h4 {
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 8px; font-weight: 500;
+}
+.detail-block p { font-size: 0.82rem; color: var(--text); line-height: 1.7; margin: 0; }
+.detail-block .detail-val { font-weight: 400; }
+
+.orders-empty {
+  text-align: center; padding: 80px 20px;
+}
+.orders-empty .empty-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.4; }
+.orders-empty h2 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--dark); margin-bottom: 8px; }
+.orders-empty p { color: var(--muted); margin-bottom: 28px; }
+
+@media (max-width: 768px) {
+  .order-card-header { padding: 14px 16px; }
+  .order-items { padding: 16px; }
+  .order-item { grid-template-columns: 44px 1fr; gap: 10px; }
+  .oi-price { grid-column: 2; }
+  .order-details-grid { grid-template-columns: 1fr; padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Fit<span>Mirror</span></a>
+  <div class="nav-links">
+    <a href="/catalog">Catalog</a>
+    <a href="/dashboard" id="nav-dash">Dashboard</a>
+    <a href="/cart" style="position:relative;">🛒 Cart <span id="nav-cart-badge" style="position:absolute;top:-6px;right:-12px;background:var(--accent);color:#fff;font-size:0.6rem;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;"></span></a>
+    <a href="#" onclick="logout()">Sign Out</a>
+  </div>
+</nav>
+
+<div class="orders-page">
+  <div class="orders-header">
+    <h1>My Orders</h1>
+    <p id="orders-count-text">Loading your orders...</p>
+  </div>
+  <div id="orders-list"></div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (!token || !user) { location.href = '/login'; }
+function logout() { localStorage.clear(); location.href = '/login'; }
+
+// Cart badge
+function updateCartBadge() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const total = cart.reduce((s, i) => s + (i.quantity || 1), 0);
+  const badge = document.getElementById('nav-cart-badge');
+  if (total > 0) { badge.style.display = 'flex'; badge.textContent = total; } else { badge.style.display = 'none'; }
+}
+updateCartBadge();
+
+function toggleOrder(el) {
+  el.closest('.order-card').classList.toggle('open');
+}
+
+const paymentLabels = { upi: '📱 UPI', card: '💳 Card', cod: '💵 Cash on Delivery' };
+
+async function loadOrders() {
+  try {
+    const res = await fetch('/api/orders', { headers: { Authorization: 'Bearer ' + token } });
+    const orders = await res.json();
+    const container = document.getElementById('orders-list');
+
+    document.getElementById('orders-count-text').textContent =
+      orders.length ? orders.length + (orders.length === 1 ? ' order' : ' orders') + ' placed' : '';
+
+    if (!orders.length) {
+      container.innerHTML = `
+        <div class="orders-empty">
+          <div class="empty-icon">📦</div>
+          <h2>No orders yet</h2>
+          <p>When you place an order, it will appear here.</p>
+          <a href="/catalog" class="btn btn-primary">Start Shopping</a>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = orders.map((order, idx) => {
+      const dateStr = new Date(order.orderedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      const timeStr = new Date(order.orderedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      const statusClass = order.status === 'confirmed' ? 'status-confirmed' : order.status === 'delivered' ? 'status-delivered' : 'status-pending';
+
+      return `
+        <div class="order-card ${idx === 0 ? 'open' : ''}">
+          <div class="order-card-header" onclick="toggleOrder(this)">
+            <div>
+              <div class="order-id">Order #FM${order.id}</div>
+              <div class="order-date">${dateStr} at ${timeStr}</div>
+            </div>
+            <div class="order-header-right">
+              <span class="order-status-badge ${statusClass}">${order.status}</span>
+              <span class="order-total">₹${order.totalAmount.toLocaleString()}</span>
+              <span class="chevron">▼</span>
+            </div>
+          </div>
+          <div class="order-card-body">
+            <div class="order-items">
+              ${order.items.map(item => `
+                <div class="order-item">
+                  <div class="oi-img">
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" onerror="this.parentElement.innerHTML='🛍️'"/>` : '<span style="font-size:1.5rem;">🛍️</span>'}
+                  </div>
+                  <div class="oi-info">
+                    <div class="oi-name">${item.name}</div>
+                    <div class="oi-meta">Size: ${item.size} · Qty: ${item.quantity} · ${item.retailerName || 'FitMirror'}</div>
+                  </div>
+                  <div class="oi-price">₹${(item.price * item.quantity).toLocaleString()}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="order-details-grid">
+              <div class="detail-block">
+                <h4>Shipping Address</h4>
+                <p class="detail-val">
+                  ${order.address.fullName}<br/>
+                  ${order.address.addressLine}<br/>
+                  ${order.address.city}${order.address.state ? ', ' + order.address.state : ''} — ${order.address.pincode}<br/>
+                  📞 ${order.address.phone}
+                </p>
+              </div>
+              <div class="detail-block">
+                <h4>Payment</h4>
+                <p class="detail-val">
+                  ${paymentLabels[order.paymentMethod] || order.paymentMethod}<br/>
+                  Status: <span class="badge ${order.paymentStatus === 'paid' ? 'badge-green' : 'badge-gold'}">${order.paymentStatus}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    document.getElementById('orders-list').innerHTML = '<div class="alert alert-error show">Failed to load orders. Please try again.</div>';
+  }
+}
+
+loadOrders();
+</script>
+</body>
+</html>

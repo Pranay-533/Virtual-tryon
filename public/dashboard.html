@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — FitMirror</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+body { padding-top: 68px; background: var(--cream); }
+.dash-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 68px); }
+.dash-sidebar {
+  background: var(--dark);
+  padding: 32px 0;
+  position: sticky; top: 68px;
+  height: calc(100vh - 68px);
+}
+.sidebar-user { padding: 0 24px 28px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.user-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-size: 1.1rem;
+  color: var(--dark); font-weight: 600;
+  margin-bottom: 10px;
+}
+.user-name { font-size: 0.9rem; color: var(--cream); font-weight: 500; }
+.user-role {
+  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gold); margin-top: 3px;
+}
+.nav-menu { padding: 16px 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 24px;
+  font-size: 0.82rem; color: rgba(250,247,242,0.5);
+  cursor: pointer; transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--cream); background: rgba(255,255,255,0.04); }
+.nav-item.active { color: var(--cream); border-left-color: var(--gold); background: rgba(255,255,255,0.05); }
+.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 16px; }
+
+.dash-main { padding: 36px 48px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+
+.page-header { margin-bottom: 32px; }
+.page-header h2 {
+  font-family: var(--font-serif); font-size: 1.8rem;
+  font-weight: 300; color: var(--dark);
+}
+.page-header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.stat-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 4px; padding: 20px 22px;
+}
+.stat-val { font-family: var(--font-serif); font-size: 2rem; font-weight: 300; color: var(--dark); }
+.stat-lbl { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+.measurements-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 24px;
+  margin-bottom: 24px;
+}
+.measurements-card h3 { font-family: var(--font-serif); font-size: 1.2rem; color: var(--dark); margin-bottom: 16px; }
+.meas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.meas-item { text-align: center; background: var(--ivory); border-radius: 4px; padding: 14px; }
+.meas-val { font-family: var(--font-serif); font-size: 1.4rem; color: var(--dark); }
+.meas-key { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+.table-wrap { background: #fff; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
+td { padding: 12px 16px; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--ivory); }
+
+.product-form { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 28px; }
+.product-form h3 { font-family: var(--font-serif); font-size: 1.2rem; color: var(--dark); margin-bottom: 20px; }
+
+@media (max-width: 900px) {
+  .dash-layout { grid-template-columns: 1fr; }
+  .dash-sidebar { position: relative; height: auto; top: 0; }
+  .dash-main { padding: 20px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .meas-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Fit<span>Mirror</span></a>
+  <div class="nav-links">
+    <a href="/catalog">Catalog</a>
+    <a href="/cart">🛒 Cart</a>
+    <span style="font-size:0.8rem;color:var(--muted);" id="nav-name"></span>
+    <a href="#" onclick="logout()">Sign Out</a>
+  </div>
+</nav>
+
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="user-avatar" id="avatar-initials">?</div>
+      <div class="user-name" id="sidebar-name">Loading...</div>
+      <div class="user-role" id="sidebar-role"></div>
+    </div>
+    <nav class="nav-menu" id="nav-menu"></nav>
+  </aside>
+
+  <main class="dash-main" id="dash-main">
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <h2>Welcome back</h2>
+        <p>Here's your FitMirror summary</p>
+      </div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div id="consumer-measurements"></div>
+      <div id="overview-extra"></div>
+    </div>
+
+    <!-- CATALOG PAGE -->
+    <div class="page" id="page-catalog">
+      <div class="page-header">
+        <h2>Browse Catalog</h2>
+        <p>Find items that fit your style</p>
+      </div>
+      <a href="/catalog" class="btn btn-primary">Open Full Catalog →</a>
+    </div>
+
+    <!-- MY ORDERS -->
+    <div class="page" id="page-orders">
+      <div class="page-header">
+        <h2>My Orders</h2>
+        <p>Track your purchases</p>
+      </div>
+      <a href="/my-orders" class="btn btn-primary">View All Orders →</a>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="page-header">
+        <h2>My Profile</h2>
+        <p>Update your details and measurements</p>
+      </div>
+      <div id="profile-content"></div>
+    </div>
+
+    <!-- ADD PRODUCT (retailer) -->
+    <div class="page" id="page-products">
+      <div class="page-header">
+        <h2 id="prod-page-title">My Products</h2>
+        <p id="prod-page-sub"></p>
+      </div>
+      <div id="alert-prod" class="alert"></div>
+      <div class="product-form" id="add-product-form" style="display:none;margin-bottom:24px;">
+        <h3>Add New Product</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Product Name <span class="required-star">*</span></label><input type="text" id="p-name" placeholder="e.g. Linen Shirt"/></div>
+          <div class="form-group"><label>Price (₹) <span class="required-star">*</span></label><input type="number" id="p-price" placeholder="1299"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Category</label>
+            <select id="p-cat">
+              <option value="tops">Tops</option><option value="bottoms">Bottoms</option>
+              <option value="dresses">Dresses</option><option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Style</label>
+            <select id="p-style">
+              <option value="casual">Casual</option><option value="formal">Formal</option>
+              <option value="sport">Sport</option><option value="ethnic">Ethnic</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Sizes (comma separated)</label><input type="text" id="p-sizes" placeholder="S, M, L, XL"/></div>
+        <div class="form-group"><label>Color (hex)</label><input type="color" id="p-color" value="#c9a96e"/></div>
+        <div class="form-group"><label>Description</label><textarea id="p-desc" placeholder="Product description..." style="min-height:80px;"></textarea></div>
+        <button class="btn btn-primary" onclick="submitProduct()">Add Product</button>
+        <button class="btn btn-outline" style="margin-left:10px;" onclick="document.getElementById('add-product-form').style.display='none'">Cancel</button>
+      </div>
+      <div style="margin-bottom:16px;">
+        <button class="btn btn-gold btn-sm" onclick="document.getElementById('add-product-form').style.display='block'">+ Add Product</button>
+      </div>
+      <div class="table-wrap" id="products-table"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+if (!token || !user) location.href = '/login';
+
+// NAV
+document.getElementById('nav-name').textContent = user.name;
+document.getElementById('avatar-initials').textContent = user.name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+document.getElementById('sidebar-name').textContent = user.name;
+document.getElementById('sidebar-role').textContent = user.role;
+
+const MENUS = {
+  consumer: [
+    { id: 'overview', icon: '◈', label: 'Overview' },
+    { id: 'catalog', icon: '◉', label: 'Catalog' },
+    { id: 'orders', icon: '◫', label: 'My Orders' },
+    { id: 'profile', icon: '◎', label: 'My Profile' },
+  ],
+  retailer: [
+    { id: 'overview', icon: '◈', label: 'Overview' },
+    { id: 'products', icon: '◉', label: 'My Products' },
+    { id: 'profile', icon: '◎', label: 'Profile' },
+  ],
+  designer: [
+    { id: 'overview', icon: '◈', label: 'Overview' },
+    { id: 'products', icon: '◉', label: 'My Collections' },
+    { id: 'profile', icon: '◎', label: 'Profile' },
+  ],
+};
+
+const menu = MENUS[user.role] || MENUS.consumer;
+const navEl = document.getElementById('nav-menu');
+navEl.innerHTML = menu.map(m => `
+  <div class="nav-item" onclick="showPage('${m.id}',this)" id="nav-${m.id}">
+    <span class="icon">${m.icon}</span>${m.label}
+  </div>
+`).join('') + `<div class="nav-item nav-logout" onclick="logout()"><span class="icon">↩</span>Sign Out</div>`;
+
+document.getElementById('nav-overview').classList.add('active');
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'products') loadMyProducts();
+}
+
+function logout() { localStorage.clear(); location.href = '/login'; }
+
+// OVERVIEW
+async function loadOverview() {
+  if (user.role === 'consumer') {
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-val">${user.measurements?.size || '—'}</div><div class="stat-lbl">Your size</div></div>
+      <div class="stat-card"><div class="stat-val">${user.measurements?.height || '—'}</div><div class="stat-lbl">Height (cm)</div></div>
+      <div class="stat-card"><div class="stat-val">${user.measurements?.chest || '—'}</div><div class="stat-lbl">Chest (cm)</div></div>
+    `;
+    if (user.measurements) {
+      const m = user.measurements;
+      document.getElementById('consumer-measurements').innerHTML = `
+        <div class="measurements-card">
+          <h3>Your Measurements</h3>
+          <div class="meas-grid">
+            ${[['Height','height','cm'],['Weight','weight','kg'],['Chest','chest','cm'],['Waist','waist','cm'],['Hips','hips','cm'],['Size','size','']].map(([k,v,u]) =>
+              `<div class="meas-item"><div class="meas-val">${m[v] || '—'}${u ? '<span style="font-size:0.7rem;color:var(--muted)"> '+u+'</span>' : ''}</div><div class="meas-key">${k}</div></div>`
+            ).join('')}
+          </div>
+        </div>`;
+    }
+    document.getElementById('overview-extra').innerHTML = `
+      <div style="background:#fff;border:1px solid var(--border);border-radius:4px;padding:24px;">
+        <h3 style="font-family:var(--font-serif);font-size:1.1rem;color:var(--dark);margin-bottom:12px;">Quick Actions</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="/catalog" class="btn btn-primary btn-sm">Browse Catalog</a>
+          <button class="btn btn-outline btn-sm" onclick="showPage('profile', document.getElementById('nav-profile'))">Edit Measurements</button>
+        </div>
+      </div>`;
+  } else {
+    // Retailer/Designer
+    const res = await fetch('/api/products?retailerId=' + user.id, { headers: { Authorization: 'Bearer ' + token } });
+    const products = await res.json();
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-val">${products.length}</div><div class="stat-lbl">Products listed</div></div>
+      <div class="stat-card"><div class="stat-val">${user.status}</div><div class="stat-lbl">Account status</div></div>
+      <div class="stat-card"><div class="stat-val">${user.brandName || '—'}</div><div class="stat-lbl">Brand name</div></div>
+    `;
+    document.getElementById('overview-extra').innerHTML = `
+      <div style="background:#fff;border:1px solid var(--border);border-radius:4px;padding:24px;">
+        <h3 style="font-family:var(--font-serif);font-size:1.1rem;color:var(--dark);margin-bottom:8px;">Account Status</h3>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;">${user.status === 'pending' ? 'Your account is awaiting admin approval.' : user.status === 'approved' ? 'Your account is verified and active.' : 'Account status: ' + user.status}</p>
+        <span class="badge ${user.status === 'approved' ? 'badge-green' : user.status === 'pending' ? 'badge-gold' : 'badge-accent'}">${user.status}</span>
+      </div>`;
+  }
+}
+
+// PRODUCTS
+async function loadMyProducts() {
+  const res = await fetch('/api/products?retailerId=' + user.id, { headers: { Authorization: 'Bearer ' + token } });
+  const products = await res.json();
+  const tbl = document.getElementById('products-table');
+  document.getElementById('prod-page-title').textContent = user.role === 'designer' ? 'My Collections' : 'My Products';
+  document.getElementById('prod-page-sub').textContent = products.length + ' items listed';
+
+  if (!products.length) {
+    tbl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted);font-size:0.9rem;">No products yet. Add your first item above.</div>';
+    return;
+  }
+  tbl.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Category</th><th>Style</th><th>Price</th><th>Sizes</th><th>Action</th></tr></thead>
+    <tbody>${products.map(p => `
+      <tr>
+        <td>${p.name}</td>
+        <td><span class="badge badge-warm">${p.category}</span></td>
+        <td>${p.style}</td>
+        <td>₹${p.price.toLocaleString()}</td>
+        <td style="font-size:0.75rem;">${p.sizes.join(', ')}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">Delete</button></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function submitProduct() {
+  const alertEl = document.getElementById('alert-prod');
+  const name = document.getElementById('p-name').value.trim();
+  const price = +document.getElementById('p-price').value;
+  if (!name || !price) {
+    alertEl.className = 'alert alert-error show';
+    alertEl.textContent = 'Name and price are required.';
+    return;
+  }
+  const sizes = document.getElementById('p-sizes').value.split(',').map(s => s.trim()).filter(Boolean);
+  const payload = {
+    name, price, category: document.getElementById('p-cat').value,
+    style: document.getElementById('p-style').value,
+    sizes: sizes.length ? sizes : ['S','M','L'],
+    color: document.getElementById('p-color').value,
+    desc: document.getElementById('p-desc').value.trim(),
+  };
+  const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(payload) });
+  const data = await res.json();
+  if (!res.ok) { alertEl.className = 'alert alert-error show'; alertEl.textContent = data.error; return; }
+  alertEl.className = 'alert alert-success show'; alertEl.textContent = 'Product added!';
+  document.getElementById('add-product-form').style.display = 'none';
+  loadMyProducts();
+  setTimeout(() => alertEl.className = 'alert', 2000);
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  await fetch('/api/products/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+  loadMyProducts();
+}
+
+// PROFILE
+function loadProfile() {
+  const m = user.measurements || {};
+  document.getElementById('profile-content').innerHTML = `
+    <div class="product-form">
+      <h3>Account Information</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name <span class="required-star">*</span></label><input type="text" id="pf-name" value="${user.name}"/></div>
+        <div class="form-group"><label>Email</label><input type="email" value="${user.email}" disabled style="opacity:0.5;"/></div>
+      </div>
+      ${user.role === 'consumer' ? `
+      <div style="margin-top:8px;margin-bottom:12px;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);">Body Measurements</div>
+      <div class="meas-grid">
+        <div class="form-group"><label>Height (cm)</label><input type="number" id="pf-height" value="${m.height||''}"/></div>
+        <div class="form-group"><label>Weight (kg)</label><input type="number" id="pf-weight" value="${m.weight||''}"/></div>
+        <div class="form-group"><label>Chest (cm)</label><input type="number" id="pf-chest" value="${m.chest||''}"/></div>
+        <div class="form-group"><label>Waist (cm)</label><input type="number" id="pf-waist" value="${m.waist||''}"/></div>
+        <div class="form-group"><label>Hips (cm)</label><input type="number" id="pf-hips" value="${m.hips||''}"/></div>
+        <div class="form-group"><label>Size</label>
+          <select id="pf-size">
+            ${['XS','S','M','L','XL','XXL'].map(s => `<option ${m.size===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>` : ''}
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="saveProfile()">Save Changes</button>
+      <div id="pf-alert" class="alert" style="margin-top:12px;"></div>
+    </div>`;
+}
+
+function saveProfile() {
+  if (user.role === 'consumer') {
+    user.measurements = {
+      height: +document.getElementById('pf-height').value || null,
+      weight: +document.getElementById('pf-weight').value || null,
+      chest: +document.getElementById('pf-chest').value || null,
+      waist: +document.getElementById('pf-waist').value || null,
+      hips: +document.getElementById('pf-hips').value || null,
+      size: document.getElementById('pf-size').value,
+    };
+  }
+  user.name = document.getElementById('pf-name').value.trim() || user.name;
+  localStorage.setItem('user', JSON.stringify(user));
+  const al = document.getElementById('pf-alert');
+  al.className = 'alert alert-success show';
+  al.textContent = 'Profile updated locally. (Connect backend PUT route to persist.)';
+  setTimeout(() => al.className = 'alert', 3000);
+}
+
+loadOverview();
+document.getElementById('nav-profile').addEventListener('click', loadProfile);
+</script>
+</body>
+</html>

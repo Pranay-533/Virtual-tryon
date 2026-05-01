@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Checkout — FitMirror</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+body { padding-top: 68px; background: var(--cream); }
+.checkout-page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+.checkout-header { margin-bottom: 32px; }
+.checkout-header h1 { font-family: var(--font-serif); font-size: 2.2rem; font-weight: 300; color: var(--dark); }
+.checkout-header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 28px; align-items: start; }
+.checkout-form { display: flex; flex-direction: column; gap: 24px; }
+.section-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 28px; }
+.section-card h3 { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 400; color: var(--dark); margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.payment-options { display: flex; flex-direction: column; gap: 10px; }
+.payment-opt { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1.5px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.payment-opt:hover { border-color: var(--gold); }
+.payment-opt.selected { border-color: var(--dark); background: var(--ivory); }
+.payment-opt input[type="radio"] { accent-color: var(--dark); width: 16px; height: 16px; }
+.payment-icon { font-size: 1.4rem; width: 32px; text-align: center; }
+.payment-label strong { display: block; font-size: 0.88rem; color: var(--dark); font-weight: 500; }
+.payment-label span { font-size: 0.75rem; color: var(--muted); }
+.payment-detail { display: none; margin-top: 14px; padding: 16px; background: var(--ivory); border-radius: 4px; }
+.payment-detail.show { display: block; animation: fadeIn 0.25s ease; }
+.order-summary-side { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 28px; position: sticky; top: 100px; }
+.order-summary-side h3 { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 400; color: var(--dark); margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.os-item { display: flex; gap: 12px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.os-item:last-of-type { border-bottom: none; }
+.os-item-img { width: 50px; height: 60px; border-radius: 4px; background: var(--ivory); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.os-item-img img { width: 100%; height: 100%; object-fit: cover; }
+.os-item-info { flex: 1; }
+.os-item-info .n { font-size: 0.85rem; color: var(--dark); font-weight: 400; }
+.os-item-info .m { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.os-item-price { font-family: var(--font-serif); font-size: 0.95rem; color: var(--dark); white-space: nowrap; }
+.summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 10px; }
+.summary-row .label { color: var(--muted); }
+.summary-row .value { color: var(--dark); }
+.summary-row.total { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); font-family: var(--font-serif); font-size: 1.2rem; font-weight: 500; }
+.place-order-btn { margin-top: 20px; }
+/* Success overlay */
+.success-overlay { display: none; position: fixed; inset: 0; background: rgba(26,23,20,0.7); z-index: 300; align-items: center; justify-content: center; }
+.success-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+.success-card { background: #fff; border-radius: 10px; padding: 48px 40px; text-align: center; max-width: 480px; width: 90%; animation: fadeUp 0.4s ease; }
+.success-icon { font-size: 4rem; margin-bottom: 16px; }
+.success-card h2 { font-family: var(--font-serif); font-size: 2rem; font-weight: 300; color: var(--dark); margin-bottom: 8px; }
+.success-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; margin-bottom: 8px; }
+.success-card .order-id { font-family: var(--font-serif); font-size: 1.1rem; color: var(--gold); margin: 12px 0 24px; }
+.success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+@keyframes checkmark { 0%{transform:scale(0)} 50%{transform:scale(1.2)} 100%{transform:scale(1)} }
+@media (max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; } .order-summary-side { position: static; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Fit<span>Mirror</span></a>
+  <div class="nav-links">
+    <a href="/catalog">Catalog</a>
+    <a href="/cart">🛒 Cart</a>
+    <a href="#" id="nav-out" onclick="logout()">Sign Out</a>
+  </div>
+</nav>
+
+<div class="checkout-page">
+  <div class="checkout-header">
+    <h1>Checkout</h1>
+    <p>Complete your order</p>
+  </div>
+  <div class="checkout-layout" id="checkout-layout">
+    <div class="checkout-form">
+      <!-- Address -->
+      <div class="section-card">
+        <h3>📍 Shipping Address</h3>
+        <div class="form-group"><label>Full Name <span class="required-star">*</span></label><input type="text" id="addr-name" placeholder="Pranay Yadav"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Phone Number <span class="required-star">*</span></label><input type="tel" id="addr-phone" placeholder="9876543210"/></div>
+          <div class="form-group"><label>Pincode <span class="required-star">*</span></label><input type="text" id="addr-pincode" placeholder="110001"/></div>
+        </div>
+        <div class="form-group"><label>Address Line <span class="required-star">*</span></label><input type="text" id="addr-line" placeholder="House No., Street, Locality"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>City <span class="required-star">*</span></label><input type="text" id="addr-city" placeholder="New Delhi"/></div>
+          <div class="form-group"><label>State</label><input type="text" id="addr-state" placeholder="Delhi"/></div>
+        </div>
+      </div>
+      <!-- Payment -->
+      <div class="section-card">
+        <h3>💳 Payment Method</h3>
+        <div class="payment-options">
+          <label class="payment-opt selected" onclick="selectPayment('upi',this)">
+            <input type="radio" name="payment" value="upi" checked/>
+            <span class="payment-icon">📱</span>
+            <div class="payment-label"><strong>UPI</strong><span>Google Pay, PhonePe, Paytm, etc.</span></div>
+          </label>
+          <label class="payment-opt" onclick="selectPayment('card',this)">
+            <input type="radio" name="payment" value="card"/>
+            <span class="payment-icon">💳</span>
+            <div class="payment-label"><strong>Credit / Debit Card</strong><span>Visa, Mastercard, Rupay</span></div>
+          </label>
+          <label class="payment-opt" onclick="selectPayment('cod',this)">
+            <input type="radio" name="payment" value="cod"/>
+            <span class="payment-icon">💵</span>
+            <div class="payment-label"><strong>Cash on Delivery</strong><span>Pay when you receive the order</span></div>
+          </label>
+        </div>
+        <!-- UPI Detail -->
+        <div class="payment-detail show" id="detail-upi">
+          <div class="form-group" style="margin-bottom:0;"><label>UPI ID</label><input type="text" id="upi-id" placeholder="yourname@upi"/></div>
+        </div>
+        <!-- Card Detail -->
+        <div class="payment-detail" id="detail-card">
+          <div class="form-group"><label>Card Number</label><input type="text" id="card-num" placeholder="1234 5678 9012 3456" maxlength="19"/></div>
+          <div class="form-row">
+            <div class="form-group"><label>Expiry</label><input type="text" id="card-exp" placeholder="MM/YY" maxlength="5"/></div>
+            <div class="form-group"><label>CVV</label><input type="password" id="card-cvv" placeholder="•••" maxlength="4"/></div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;"><label>Name on Card</label><input type="text" id="card-name" placeholder="Cardholder name"/></div>
+        </div>
+        <!-- COD Detail -->
+        <div class="payment-detail" id="detail-cod">
+          <p style="font-size:0.82rem;color:var(--muted);margin:0;">💰 Pay ₹<span id="cod-total">0</span> in cash when your order is delivered. An extra ₹40 COD charge may apply.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Summary Sidebar -->
+    <div class="order-summary-side">
+      <h3>Order Summary</h3>
+      <div id="os-items"></div>
+      <div id="os-totals"></div>
+      <div id="checkout-alert" class="alert" style="margin-top:12px;"></div>
+      <button class="btn btn-primary btn-full place-order-btn" id="place-order-btn" onclick="placeOrder()">
+        Place Order
+      </button>
+      <a href="/cart" style="display:block;text-align:center;margin-top:12px;font-size:0.78rem;color:var(--muted);text-decoration:none;">← Back to Cart</a>
+    </div>
+  </div>
+</div>
+
+<!-- Success Overlay -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <div class="success-icon" style="animation: checkmark 0.5s ease;">✅</div>
+    <h2>Order Placed!</h2>
+    <p>Thank you for shopping with FitMirror. Your order has been confirmed.</p>
+    <div class="order-id" id="success-order-id">Order #---</div>
+    <p id="success-payment-msg"></p>
+    <div class="success-actions">
+      <a href="/catalog" class="btn btn-primary">Continue Shopping</a>
+      <a href="/my-orders" class="btn btn-outline">View My Orders</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (!token || !user) { alert('Please sign in to checkout.'); location.href = '/login'; }
+function logout() { localStorage.clear(); location.href = '/login'; }
+
+function getCart() { return JSON.parse(localStorage.getItem('cart') || '[]'); }
+
+let selectedPayment = 'upi';
+
+function selectPayment(method, el) {
+  selectedPayment = method;
+  document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.querySelectorAll('.payment-detail').forEach(d => d.classList.remove('show'));
+  const detail = document.getElementById('detail-' + method);
+  if (detail) detail.classList.add('show');
+}
+
+function renderOrderSummary() {
+  const cart = getCart();
+  if (!cart.length) { location.href = '/cart'; return; }
+  const itemsEl = document.getElementById('os-items');
+  itemsEl.innerHTML = cart.map(item => `
+    <div class="os-item">
+      <div class="os-item-img">
+        ${item.image ? `<img src="${item.image}" alt="${item.name}" onerror="this.parentElement.innerHTML='🛍️'"/>` : '🛍️'}
+      </div>
+      <div class="os-item-info">
+        <div class="n">${item.name}</div>
+        <div class="m">Size: ${item.size} · Qty: ${item.quantity || 1}</div>
+      </div>
+      <div class="os-item-price">₹${(item.price * (item.quantity || 1)).toLocaleString()}</div>
+    </div>
+  `).join('');
+
+  const subtotal = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+  const shipping = subtotal > 999 ? 0 : 99;
+  const total = subtotal + shipping;
+  document.getElementById('cod-total').textContent = total.toLocaleString();
+
+  document.getElementById('os-totals').innerHTML = `
+    <div class="summary-row"><span class="label">Subtotal</span><span class="value">₹${subtotal.toLocaleString()}</span></div>
+    <div class="summary-row"><span class="label">Shipping</span><span class="value">${shipping === 0 ? '<span style="color:#2d7a4f">FREE</span>' : '₹'+shipping}</span></div>
+    <div class="summary-row total"><span class="label">Total</span><span class="value">₹${total.toLocaleString()}</span></div>
+  `;
+}
+
+async function placeOrder() {
+  const alert = document.getElementById('checkout-alert');
+  alert.className = 'alert'; alert.textContent = '';
+
+  const address = {
+    fullName: document.getElementById('addr-name').value.trim(),
+    phone: document.getElementById('addr-phone').value.trim(),
+    pincode: document.getElementById('addr-pincode').value.trim(),
+    addressLine: document.getElementById('addr-line').value.trim(),
+    city: document.getElementById('addr-city').value.trim(),
+    state: document.getElementById('addr-state').value.trim(),
+  };
+
+  if (!address.fullName || !address.phone || !address.pincode || !address.addressLine || !address.city) {
+    alert.className = 'alert alert-error show';
+    alert.textContent = 'Please fill in all address fields.';
+    return;
+  }
+
+  if (selectedPayment === 'upi' && !document.getElementById('upi-id').value.trim()) {
+    alert.className = 'alert alert-error show'; alert.textContent = 'Please enter your UPI ID.'; return;
+  }
+  if (selectedPayment === 'card') {
+    if (!document.getElementById('card-num').value.trim() || !document.getElementById('card-exp').value.trim() || !document.getElementById('card-cvv').value.trim()) {
+      alert.className = 'alert alert-error show'; alert.textContent = 'Please fill card details.'; return;
+    }
+  }
+
+  const cart = getCart();
+  const items = cart.map(i => ({ productId: i.productId, size: i.size, quantity: i.quantity || 1 }));
+  const subtotal = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+  const shipping = subtotal > 999 ? 0 : 99;
+
+  const btn = document.getElementById('place-order-btn');
+  btn.innerHTML = '<span class="loader"></span> Processing...'; btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ items, address, paymentMethod: selectedPayment, totalAmount: subtotal + shipping }),
+    });
+    const data = await res.json();
+    if (!res.ok) { throw new Error(data.error || 'Order failed'); }
+
+    // Clear cart
+    localStorage.removeItem('cart');
+
+    // Show success
+    document.getElementById('success-order-id').textContent = 'Order #FM' + data.id;
+    const msgs = { upi: 'Payment of ₹'+data.totalAmount.toLocaleString()+' processed via UPI.', card: 'Payment of ₹'+data.totalAmount.toLocaleString()+' charged to your card.', cod: 'Pay ₹'+data.totalAmount.toLocaleString()+' in cash when delivered.' };
+    document.getElementById('success-payment-msg').textContent = msgs[selectedPayment] || '';
+    document.getElementById('success-overlay').classList.add('show');
+  } catch(e) {
+    alert.className = 'alert alert-error show'; alert.textContent = e.message;
+    btn.innerHTML = 'Place Order'; btn.disabled = false;
+  }
+}
+
+if (user) { document.getElementById('addr-name').value = user.name || ''; }
+renderOrderSummary();
+</script>
+</body>
+</html>

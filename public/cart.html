@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Shopping Cart — FitMirror</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+body { padding-top: 68px; background: var(--cream); }
+.cart-page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+.cart-header { margin-bottom: 32px; }
+.cart-header h1 {
+  font-family: var(--font-serif); font-size: 2.2rem; font-weight: 300; color: var(--dark);
+}
+.cart-header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+.cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
+
+/* Cart Items */
+.cart-items { display: flex; flex-direction: column; gap: 12px; }
+.cart-item {
+  background: #fff; border: 1px solid var(--border); border-radius: 6px;
+  padding: 20px; display: grid; grid-template-columns: 80px 1fr auto; gap: 20px;
+  align-items: center; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cart-item:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(26,23,20,0.05); }
+.cart-item-img {
+  width: 80px; height: 100px; border-radius: 4px; overflow: hidden; background: var(--ivory);
+  display: flex; align-items: center; justify-content: center;
+}
+.cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
+.cart-item-info { display: flex; flex-direction: column; gap: 4px; }
+.cart-item-info .item-retailer {
+  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+}
+.cart-item-info .item-name {
+  font-family: var(--font-serif); font-size: 1.1rem; color: var(--dark); font-weight: 400;
+}
+.cart-item-info .item-meta {
+  font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 12px;
+}
+.cart-item-info .item-price {
+  font-family: var(--font-serif); font-size: 1.15rem; color: var(--dark); font-weight: 500; margin-top: 4px;
+}
+.cart-item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.qty-control {
+  display: flex; align-items: center; gap: 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+}
+.qty-btn {
+  width: 32px; height: 32px; border: none; background: var(--ivory); cursor: pointer;
+  font-size: 1rem; color: var(--dark); transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.qty-btn:hover { background: var(--gold-light); }
+.qty-val {
+  width: 40px; height: 32px; text-align: center; border: none; background: #fff;
+  font-family: var(--font-sans); font-size: 0.85rem; color: var(--dark);
+}
+.remove-btn {
+  background: none; border: none; font-size: 0.72rem; color: var(--accent);
+  cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: color 0.15s;
+}
+.remove-btn:hover { color: #a03a28; }
+
+/* Summary Sidebar */
+.cart-summary {
+  background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 28px;
+  position: sticky; top: 100px;
+}
+.cart-summary h3 {
+  font-family: var(--font-serif); font-size: 1.3rem; font-weight: 400; color: var(--dark);
+  margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+}
+.summary-row {
+  display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 12px;
+}
+.summary-row .label { color: var(--muted); }
+.summary-row .value { color: var(--dark); font-weight: 400; }
+.summary-row.total {
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+  font-family: var(--font-serif); font-size: 1.2rem; font-weight: 500;
+}
+.summary-row.total .value { color: var(--dark); }
+.summary-row.savings .value { color: #2d7a4f; }
+.checkout-btn { margin-top: 24px; }
+.continue-link {
+  display: block; text-align: center; margin-top: 14px;
+  font-size: 0.78rem; color: var(--muted); text-decoration: none;
+  letter-spacing: 0.06em; transition: color 0.15s;
+}
+.continue-link:hover { color: var(--gold); }
+
+/* Empty Cart */
+.cart-empty {
+  text-align: center; padding: 80px 20px;
+  grid-column: 1 / -1;
+}
+.cart-empty .empty-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.4; }
+.cart-empty h2 {
+  font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--dark); margin-bottom: 8px;
+}
+.cart-empty p { color: var(--muted); margin-bottom: 28px; }
+
+@media (max-width: 900px) {
+  .cart-layout { grid-template-columns: 1fr; }
+  .cart-summary { position: static; }
+  .cart-item { grid-template-columns: 60px 1fr; gap: 14px; }
+  .cart-item-actions { flex-direction: row; align-items: center; grid-column: 1 / -1; justify-content: space-between; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Fit<span>Mirror</span></a>
+  <div class="nav-links">
+    <a href="/catalog">Catalog</a>
+    <a href="/dashboard" id="nav-dash" style="display:none">Dashboard</a>
+    <a href="/cart" style="position:relative;">
+      🛒 Cart <span id="nav-cart-badge" style="position:absolute;top:-6px;right:-12px;background:var(--accent);color:#fff;font-size:0.6rem;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;"></span>
+    </a>
+    <a href="/login" id="nav-login">Sign In</a>
+    <a href="#" id="nav-out" style="display:none;cursor:pointer;" onclick="logout()">Sign Out</a>
+  </div>
+</nav>
+
+<div class="cart-page">
+  <div class="cart-header">
+    <h1>Shopping Cart</h1>
+    <p id="cart-count-text">0 items in your cart</p>
+  </div>
+  <div class="cart-layout" id="cart-layout">
+    <div class="cart-empty">
+      <div class="empty-icon">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p>Browse our catalog and add items to get started.</p>
+      <a href="/catalog" class="btn btn-primary">Browse Catalog</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+if (token && user) {
+  document.getElementById('nav-login').style.display = 'none';
+  document.getElementById('nav-out').style.display = 'inline';
+  document.getElementById('nav-dash').style.display = 'inline';
+}
+function logout() { localStorage.clear(); location.href = '/login'; }
+
+// ── Cart Logic ──
+function getCart() {
+  return JSON.parse(localStorage.getItem('cart') || '[]');
+}
+function saveCart(cart) {
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartBadge();
+}
+function updateCartBadge() {
+  const cart = getCart();
+  const total = cart.reduce((s, i) => s + (i.quantity || 1), 0);
+  const badge = document.getElementById('nav-cart-badge');
+  if (total > 0) { badge.style.display = 'flex'; badge.textContent = total; }
+  else { badge.style.display = 'none'; }
+  document.getElementById('cart-count-text').textContent = total + (total === 1 ? ' item' : ' items') + ' in your cart';
+}
+function removeFromCart(idx) {
+  const cart = getCart();
+  cart.splice(idx, 1);
+  saveCart(cart);
+  renderCart();
+}
+function updateQty(idx, delta) {
+  const cart = getCart();
+  cart[idx].quantity = Math.max(1, (cart[idx].quantity || 1) + delta);
+  saveCart(cart);
+  renderCart();
+}
+
+function renderCart() {
+  const cart = getCart();
+  const layout = document.getElementById('cart-layout');
+
+  if (!cart.length) {
+    layout.innerHTML = `
+      <div class="cart-empty">
+        <div class="empty-icon">🛒</div>
+        <h2>Your cart is empty</h2>
+        <p>Browse our catalog and add items to get started.</p>
+        <a href="/catalog" class="btn btn-primary">Browse Catalog</a>
+      </div>`;
+    return;
+  }
+
+  const subtotal = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+  const shipping = subtotal > 999 ? 0 : 99;
+  const total = subtotal + shipping;
+
+  layout.innerHTML = `
+    <div class="cart-items">
+      ${cart.map((item, idx) => `
+        <div class="cart-item">
+          <div class="cart-item-img">
+            ${item.image
+              ? `<img src="${item.image}" alt="${item.name}" onerror="this.parentElement.innerHTML='🛍️'"/>`
+              : '<span style="font-size:2rem;color:var(--muted);">🛍️</span>'
+            }
+          </div>
+          <div class="cart-item-info">
+            <span class="item-retailer">${item.retailerName || 'FitMirror'}</span>
+            <span class="item-name">${item.name}</span>
+            <div class="item-meta">
+              <span>Size: <strong>${item.size}</strong></span>
+              <span class="badge badge-warm">${item.category || ''}</span>
+            </div>
+            <span class="item-price">₹${(item.price * (item.quantity || 1)).toLocaleString()}</span>
+          </div>
+          <div class="cart-item-actions">
+            <div class="qty-control">
+              <button class="qty-btn" onclick="updateQty(${idx}, -1)">−</button>
+              <input class="qty-val" type="text" value="${item.quantity || 1}" readonly/>
+              <button class="qty-btn" onclick="updateQty(${idx}, 1)">+</button>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${idx})">✕ Remove</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="cart-summary">
+      <h3>Order Summary</h3>
+      <div class="summary-row">
+        <span class="label">Subtotal (${cart.reduce((s,i)=>s+(i.quantity||1),0)} items)</span>
+        <span class="value">₹${subtotal.toLocaleString()}</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Shipping</span>
+        <span class="value">${shipping === 0 ? '<span style="color:#2d7a4f;">FREE</span>' : '₹' + shipping}</span>
+      </div>
+      ${shipping === 0 ? '<div class="summary-row savings"><span class="label">You save</span><span class="value">₹99 on shipping</span></div>' : ''}
+      <div class="summary-row total">
+        <span class="label">Total</span>
+        <span class="value">₹${total.toLocaleString()}</span>
+      </div>
+      <a href="/checkout" class="btn btn-primary btn-full checkout-btn">Proceed to Checkout →</a>
+      <a href="/catalog" class="continue-link">← Continue Shopping</a>
+    </div>
+  `;
+}
+
+updateCartBadge();
+renderCart();
+</script>
+</body>
+</html>

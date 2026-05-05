@@ -29,7 +29,8 @@ app.get('/checkout', (req, res) => res.sendFile(path.join(__dirname, 'public', '
 app.get('/order-confirmation', (req, res) => res.sendFile(path.join(__dirname, 'public', 'checkout.html')));
 app.get('/my-orders', (req, res) => res.sendFile(path.join(__dirname, 'public', 'orders.html')));
 
-if (process.env.NODE_ENV !== 'production') {
+// Start the server if NOT running on Vercel
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`\n🚀 Virtual Try-On Server running at http://localhost:${PORT}`);
     console.log(`\n📋 Demo Credentials:`);

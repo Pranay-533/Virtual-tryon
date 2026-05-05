@@ -314,6 +314,7 @@ body { padding-top: 68px; background: var(--bg); }
 </div>
 
 <script>
+const API_BASE = location.hostname === 'localhost' ? '' : 'https://virtual-tryon-api.onrender.com';
 let currentRole = 'consumer';
 let currentStep = 1;
 
@@ -387,7 +388,7 @@ async function doRegister() {
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch(API_BASE + '/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

@@ -193,6 +193,7 @@ tr:hover td { background: var(--surface2); }
 </div>
 
 <script>
+const API_BASE = location.hostname === 'localhost' ? '' : 'https://virtual-tryon-api.onrender.com';
 const token = localStorage.getItem('token');
 const user = JSON.parse(localStorage.getItem('user') || 'null');
 
@@ -273,7 +274,7 @@ async function loadOverview() {
       </div>`;
   } else {
     // Retailer/Designer
-    const res = await fetch('/api/products?retailerId=' + user.id, { headers: { Authorization: 'Bearer ' + token } });
+    const res = await fetch(API_BASE + '/api/products?retailerId=' + user.id, { headers: { Authorization: 'Bearer ' + token } });
     const products = await res.json();
     document.getElementById('stat-grid').innerHTML = `
       <div class="stat-card"><div class="stat-val">${products.length}</div><div class="stat-lbl">Products listed</div></div>
@@ -291,7 +292,7 @@ async function loadOverview() {
 
 // PRODUCTS
 async function loadMyProducts() {
-  const res = await fetch('/api/products?retailerId=' + user.id, { headers: { Authorization: 'Bearer ' + token } });
+  const res = await fetch(API_BASE + '/api/products?retailerId=' + user.id, { headers: { Authorization: 'Bearer ' + token } });
   const products = await res.json();
   const tbl = document.getElementById('products-table');
   document.getElementById('prod-page-title').textContent = user.role === 'designer' ? 'My Collections' : 'My Products';
@@ -333,7 +334,7 @@ async function submitProduct() {
     color: document.getElementById('p-color').value,
     desc: document.getElementById('p-desc').value.trim(),
   };
-  const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(payload) });
+  const res = await fetch(API_BASE + '/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(payload) });
   const data = await res.json();
   if (!res.ok) { alertEl.className = 'alert alert-error show'; alertEl.textContent = data.error; return; }
   alertEl.className = 'alert alert-success show'; alertEl.textContent = 'Product added!';
@@ -344,7 +345,7 @@ async function submitProduct() {
 
 async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
-  await fetch('/api/products/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+  await fetch(API_BASE + '/api/products/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
   loadMyProducts();
 }
 

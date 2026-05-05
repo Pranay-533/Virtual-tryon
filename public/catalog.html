@@ -597,6 +597,7 @@ body { padding-top: 68px; background: var(--bg); }
 </div>
 
 <script>
+const API_BASE = location.hostname === 'localhost' ? '' : 'https://virtual-tryon-api.onrender.com';
 /* ─────────────────────────────────────────────
    STATE
 ───────────────────────────────────────────── */
@@ -658,7 +659,7 @@ updateCartBadge();
    PRODUCTS
 ───────────────────────────────────────────── */
 async function loadProducts() {
-  const res = await fetch('/api/products');
+  const res = await fetch(API_BASE + '/api/products');
   allProducts = await res.json();
   renderProducts(allProducts);
 }

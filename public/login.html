@@ -235,6 +235,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 </div>
 
 <script>
+const API_BASE = location.hostname === 'localhost' ? '' : 'https://virtual-tryon-api.onrender.com';
 async function doLogin() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
@@ -253,7 +254,7 @@ async function doLogin() {
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(API_BASE + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -307,7 +308,7 @@ async function sendOTP() {
   
   btn.innerHTML = '<span class="loader"></span> Sending...'; btn.disabled = true;
   try {
-    const res = await fetch('/api/auth/forgot-password', {
+    const res = await fetch(API_BASE + '/api/auth/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
@@ -334,7 +335,7 @@ async function resetPassword() {
   
   btn.innerHTML = '<span class="loader"></span> Resetting...'; btn.disabled = true;
   try {
-    const res = await fetch('/api/auth/reset-password', {
+    const res = await fetch(API_BASE + '/api/auth/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, otp, newPassword })

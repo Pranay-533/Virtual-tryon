@@ -156,6 +156,7 @@ body { padding-top: 68px; background: var(--bg); }
 </div>
 
 <script>
+const API_BASE = location.hostname === 'localhost' ? '' : 'https://virtual-tryon-api.onrender.com';
 const token = localStorage.getItem('token');
 const user = JSON.parse(localStorage.getItem('user') || 'null');
 if (!token || !user) { alert('Please sign in to checkout.'); location.href = '/login'; }
@@ -240,7 +241,7 @@ async function placeOrder() {
   btn.innerHTML = '<span class="loader"></span> Processing...'; btn.disabled = true;
 
   try {
-    const res = await fetch('/api/orders', {
+    const res = await fetch(API_BASE + '/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({ items, address, paymentMethod: selectedPayment, totalAmount: subtotal + shipping }),

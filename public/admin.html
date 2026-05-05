@@ -156,6 +156,7 @@ tr:hover td { background: var(--surface2); }
 </div>
 
 <script>
+const API_BASE = location.hostname === 'localhost' ? '' : 'https://virtual-tryon-api.onrender.com';
 const token = localStorage.getItem('token');
 const user = JSON.parse(localStorage.getItem('user') || 'null');
 if (!token || !user || user.role !== 'admin') location.href = '/login';
@@ -175,7 +176,7 @@ function showPage(id, el) {
 const H = () => ({ Authorization: 'Bearer ' + token });
 
 async function loadStats() {
-  const res = await fetch('/api/admin/stats', { headers: H() });
+  const res = await fetch(API_BASE + '/api/admin/stats', { headers: H() });
   const s = await res.json();
   document.getElementById('stats-row').innerHTML = `
     <div class="stat-box"><div class="val">${s.totalUsers}</div><div class="lbl">Total users</div></div>
@@ -188,7 +189,7 @@ async function loadStats() {
 }
 
 async function loadOverviewPending() {
-  const res = await fetch('/api/admin/pending', { headers: H() });
+  const res = await fetch(API_BASE + '/api/admin/pending', { headers: H() });
   const list = await res.json();
   const el = document.getElementById('overview-pending');
   if (!list.length) { el.innerHTML = '<div class="empty-msg">No pending approvals ✓</div>'; return; }
@@ -196,7 +197,7 @@ async function loadOverviewPending() {
 }
 
 async function loadPending() {
-  const res = await fetch('/api/admin/pending', { headers: H() });
+  const res = await fetch(API_BASE + '/api/admin/pending', { headers: H() });
   const list = await res.json();
   const el = document.getElementById('pending-list');
   if (!list.length) { el.innerHTML = '<div class="empty-msg">No pending approvals — all clear!</div>'; return; }
@@ -219,17 +220,17 @@ function pendingCard(u) {
 }
 
 async function approveUser(id) {
-  await fetch('/api/admin/users/' + id + '/approve', { method: 'PUT', headers: H() });
+  await fetch(API_BASE + '/api/admin/users/' + id + '/approve', { method: 'PUT', headers: H() });
   loadStats(); loadPending();
 }
 async function rejectUser(id) {
   if (!confirm('Reject this user?')) return;
-  await fetch('/api/admin/users/' + id + '/reject', { method: 'PUT', headers: H() });
+  await fetch(API_BASE + '/api/admin/users/' + id + '/reject', { method: 'PUT', headers: H() });
   loadStats(); loadPending();
 }
 
 async function loadUsers() {
-  const res = await fetch('/api/admin/users', { headers: H() });
+  const res = await fetch(API_BASE + '/api/admin/users', { headers: H() });
   const users = await res.json();
   document.getElementById('users-tbody').innerHTML = users.map(u => `
     <tr>
@@ -245,7 +246,7 @@ async function loadUsers() {
 }
 
 async function loadProducts() {
-  const res = await fetch('/api/products');
+  const res = await fetch(API_BASE + '/api/products');
   const products = await res.json();
   document.getElementById('products-tbody').innerHTML = products.map(p => `
     <tr>
@@ -260,7 +261,7 @@ async function loadProducts() {
 
 async function delProduct(id) {
   if (!confirm('Remove this product?')) return;
-  await fetch('/api/products/' + id, { method: 'DELETE', headers: H() });
+  await fetch(API_BASE + '/api/products/' + id, { method: 'DELETE', headers: H() });
   loadProducts();
 }
 

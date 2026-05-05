@@ -6,86 +6,86 @@
 <title>Shopping Cart — FitMirror</title>
 <link rel="stylesheet" href="/css/style.css"/>
 <style>
-body { padding-top: 68px; background: var(--cream); }
+body { padding-top: 68px; background: var(--bg); }
 .cart-page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
 .cart-header { margin-bottom: 32px; }
 .cart-header h1 {
-  font-family: var(--font-serif); font-size: 2.2rem; font-weight: 300; color: var(--dark);
+  font-family: var(--font-serif); font-size: 2.2rem; font-weight: 300; color: var(--white);
 }
-.cart-header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.cart-header p { font-size: 0.85rem; color: var(--text3); margin-top: 4px; }
 
 .cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
 
 /* Cart Items */
 .cart-items { display: flex; flex-direction: column; gap: 12px; }
 .cart-item {
-  background: #fff; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
   padding: 20px; display: grid; grid-template-columns: 80px 1fr auto; gap: 20px;
   align-items: center; transition: border-color 0.2s, box-shadow 0.2s;
 }
-.cart-item:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(26,23,20,0.05); }
+.cart-item:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
 .cart-item-img {
-  width: 80px; height: 100px; border-radius: 4px; overflow: hidden; background: var(--ivory);
+  width: 80px; height: 100px; border-radius: 4px; overflow: hidden; background: var(--surface2);
   display: flex; align-items: center; justify-content: center;
 }
 .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
 .cart-item-info { display: flex; flex-direction: column; gap: 4px; }
 .cart-item-info .item-retailer {
-  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
 }
 .cart-item-info .item-name {
-  font-family: var(--font-serif); font-size: 1.1rem; color: var(--dark); font-weight: 400;
+  font-family: var(--font-serif); font-size: 1.1rem; color: var(--white); font-weight: 400;
 }
 .cart-item-info .item-meta {
-  font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 12px;
+  font-size: 0.78rem; color: var(--text3); display: flex; align-items: center; gap: 12px;
 }
 .cart-item-info .item-price {
-  font-family: var(--font-serif); font-size: 1.15rem; color: var(--dark); font-weight: 500; margin-top: 4px;
+  font-family: var(--font-serif); font-size: 1.15rem; color: var(--white); font-weight: 500; margin-top: 4px;
 }
 .cart-item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 .qty-control {
   display: flex; align-items: center; gap: 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
 }
 .qty-btn {
-  width: 32px; height: 32px; border: none; background: var(--ivory); cursor: pointer;
-  font-size: 1rem; color: var(--dark); transition: background 0.15s;
+  width: 32px; height: 32px; border: none; background: var(--surface2); cursor: pointer;
+  font-size: 1rem; color: var(--white); transition: background 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.qty-btn:hover { background: var(--gold-light); }
+.qty-btn:hover { background: var(--gold); color: var(--bg); }
 .qty-val {
-  width: 40px; height: 32px; text-align: center; border: none; background: #fff;
-  font-family: var(--font-sans); font-size: 0.85rem; color: var(--dark);
+  width: 40px; height: 32px; text-align: center; border: none; background: var(--surface);
+  font-family: var(--font-sans); font-size: 0.85rem; color: var(--white);
 }
 .remove-btn {
-  background: none; border: none; font-size: 0.72rem; color: var(--accent);
+  background: none; border: none; font-size: 0.72rem; color: var(--red);
   cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: color 0.15s;
 }
-.remove-btn:hover { color: #a03a28; }
+.remove-btn:hover { color: #f87171; }
 
 /* Summary Sidebar */
 .cart-summary {
-  background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 28px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 28px;
   position: sticky; top: 100px;
 }
 .cart-summary h3 {
-  font-family: var(--font-serif); font-size: 1.3rem; font-weight: 400; color: var(--dark);
+  font-family: var(--font-serif); font-size: 1.3rem; font-weight: 400; color: var(--white);
   margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
 }
 .summary-row {
   display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 12px;
 }
-.summary-row .label { color: var(--muted); }
-.summary-row .value { color: var(--dark); font-weight: 400; }
+.summary-row .label { color: var(--text3); }
+.summary-row .value { color: var(--white); font-weight: 400; }
 .summary-row.total {
   margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
   font-family: var(--font-serif); font-size: 1.2rem; font-weight: 500;
 }
-.summary-row.total .value { color: var(--dark); }
-.summary-row.savings .value { color: #2d7a4f; }
+.summary-row.total .value { color: var(--gold); }
+.summary-row.savings .value { color: #22c55e; }
 .checkout-btn { margin-top: 24px; }
 .continue-link {
   display: block; text-align: center; margin-top: 14px;
-  font-size: 0.78rem; color: var(--muted); text-decoration: none;
+  font-size: 0.78rem; color: var(--text3); text-decoration: none;
   letter-spacing: 0.06em; transition: color 0.15s;
 }
 .continue-link:hover { color: var(--gold); }
@@ -97,9 +97,9 @@ body { padding-top: 68px; background: var(--cream); }
 }
 .cart-empty .empty-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.4; }
 .cart-empty h2 {
-  font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--dark); margin-bottom: 8px;
+  font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--white); margin-bottom: 8px;
 }
-.cart-empty p { color: var(--muted); margin-bottom: 28px; }
+.cart-empty p { color: var(--text3); margin-bottom: 28px; }
 
 @media (max-width: 900px) {
   .cart-layout { grid-template-columns: 1fr; }
@@ -253,5 +253,18 @@ function renderCart() {
 updateCartBadge();
 renderCart();
 </script>
+<!-- Customer Care Floating Button -->
+<div class="customer-care">
+  <div class="cc-menu">
+    <a href="mailto:mepranay18@gmail.com" class="cc-item">
+      <span>📧</span> mepranay18@gmail.com
+    </a>
+    <a href="https://github.com/Pranay533" target="_blank" class="cc-item">
+      <span>🐙</span> GitHub: Pranay533
+    </a>
+  </div>
+  <div class="cc-btn" title="Customer Care">🎧</div>
+</div>
+
 </body>
 </html>

@@ -64,4 +64,55 @@ router.get('/me', require('../middleware/auth').authMiddleware, (req, res) => {
   res.json(safeUser);
 });
 
+// In-memory OTP store (demo only — use Redis/DB in production)
+const otpStore = {};
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+    const user = db.users.find(u => u.email === email);
+    if (!user) return res.status(404).json({ error: 'No account found with that email' });
+
+    // Generate 6-digit OTP
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // 10 min expiry
+
+    // In production, send via email. For demo, log it.
+    console.log(`[OTP] ${email} => ${otp}`);
+
+    res.json({ message: `OTP sent to ${email}. Check console for demo OTP.` });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) return res.status(400).json({ error: 'All fields are required' });
+    if (newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    const stored = otpStore[email];
+    if (!stored) return res.status(400).json({ error: 'No OTP requested for this email. Please request one first.' });
+    if (Date.now() > stored.expires) {
+      delete otpStore[email];
+      return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+    }
+    if (stored.otp !== otp) return res.status(400).json({ error: 'Invalid OTP' });
+
+    const user = db.users.find(u => u.email === email);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    delete otpStore[email];
+
+    res.json({ message: 'Password reset successfully. You can now login.' });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

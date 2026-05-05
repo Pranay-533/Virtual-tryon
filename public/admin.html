@@ -6,52 +6,53 @@
 <title>Admin Panel — FitMirror</title>
 <link rel="stylesheet" href="/css/style.css"/>
 <style>
-body { padding-top: 68px; background: var(--cream); }
+body { padding-top: 68px; background: var(--bg); }
 .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 68px); }
 .admin-sidebar {
-  background: #111;
+  background: var(--bg2);
   padding: 28px 0;
   position: sticky; top: 68px; height: calc(100vh - 68px);
+  border-right: 1px solid var(--border);
 }
-.sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid var(--border); }
 .sidebar-brand p { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
-.sidebar-brand h3 { font-family: var(--font-serif); font-size: 1.1rem; color: var(--cream); font-weight: 300; }
+.sidebar-brand h3 { font-family: var(--font-serif); font-size: 1.1rem; color: var(--white); font-weight: 300; }
 .s-menu { padding: 16px 0; }
 .s-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 24px;
-  font-size: 0.82rem; color: rgba(250,247,242,0.45);
+  font-size: 0.82rem; color: var(--text3);
   cursor: pointer; transition: all 0.15s;
   border-left: 2px solid transparent;
 }
-.s-item:hover { color: var(--cream); background: rgba(255,255,255,0.03); }
-.s-item.active { color: var(--cream); border-left-color: var(--gold); background: rgba(255,255,255,0.04); }
-.s-badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 0.65rem; padding: 1px 7px; border-radius: 10px; }
+.s-item:hover { color: var(--white); background: var(--surface); }
+.s-item.active { color: var(--white); border-left-color: var(--gold); background: var(--surface2); }
+.s-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 0.65rem; padding: 1px 7px; border-radius: 10px; }
 
 .admin-main { padding: 36px 48px; }
 .page { display: none; }
 .page.active { display: block; animation: fadeIn 0.25s ease; }
 .page-hd { margin-bottom: 28px; }
-.page-hd h2 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--dark); }
-.page-hd p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.page-hd h2 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--white); }
+.page-hd p { font-size: 0.85rem; color: var(--text3); margin-top: 4px; }
 
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
-.stat-box { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
-.stat-box .val { font-family: var(--font-serif); font-size: 2rem; font-weight: 300; color: var(--dark); }
-.stat-box .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 4px; }
+.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
+.stat-box .val { font-family: var(--font-serif); font-size: 2rem; font-weight: 300; color: var(--gold); }
+.stat-box .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-top: 4px; }
 
-.table-wrap { background: #fff; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
 .table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.table-header h3 { font-family: var(--font-serif); font-size: 1.05rem; color: var(--dark); font-weight: 500; }
+.table-header h3 { font-family: var(--font-serif); font-size: 1.05rem; color: var(--white); font-weight: 500; }
 table { width: 100%; border-collapse: collapse; }
-th { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
-td { padding: 11px 16px; font-size: 0.83rem; border-bottom: 1px solid var(--border); }
+th { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
+td { padding: 11px 16px; font-size: 0.83rem; border-bottom: 1px solid var(--border); color: var(--text2); }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--ivory); }
+tr:hover td { background: var(--surface2); }
 .action-btns { display: flex; gap: 6px; }
 
 .pending-card {
-  background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 20px 22px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px 22px;
   display: flex; align-items: center; gap: 16px;
   margin-bottom: 12px;
   transition: border-color 0.2s;
@@ -59,15 +60,15 @@ tr:hover td { background: var(--ivory); }
 .pending-card:hover { border-color: var(--gold); }
 .pending-avatar {
   width: 42px; height: 42px; border-radius: 50%;
-  background: var(--ivory); border: 1px solid var(--border);
+  background: var(--surface2); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-serif); font-size: 1rem; color: var(--warm);
+  font-family: var(--font-serif); font-size: 1rem; color: var(--gold);
   flex-shrink: 0;
 }
 .pending-info { flex: 1; }
-.pending-info strong { display: block; font-size: 0.9rem; color: var(--dark); margin-bottom: 2px; }
-.pending-info span { font-size: 0.78rem; color: var(--muted); }
-.empty-msg { padding: 32px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+.pending-info strong { display: block; font-size: 0.9rem; color: var(--white); margin-bottom: 2px; }
+.pending-info span { font-size: 0.78rem; color: var(--text3); }
+.empty-msg { padding: 32px; text-align: center; color: var(--text3); font-size: 0.85rem; }
 
 @media (max-width: 900px) {
   .admin-layout { grid-template-columns: 1fr; }
@@ -265,5 +266,18 @@ async function delProduct(id) {
 
 loadStats();
 </script>
+<!-- Customer Care Floating Button -->
+<div class="customer-care">
+  <div class="cc-menu">
+    <a href="mailto:mepranay18@gmail.com" class="cc-item">
+      <span>📧</span> mepranay18@gmail.com
+    </a>
+    <a href="https://github.com/Pranay533" target="_blank" class="cc-item">
+      <span>🐙</span> GitHub: Pranay533
+    </a>
+  </div>
+  <div class="cc-btn" title="Customer Care">🎧</div>
+</div>
+
 </body>
 </html>

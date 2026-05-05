@@ -1,6 +1,7 @@
 {
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/admin", "destination": "/public/admin.html" },
     { "source": "/cart", "destination": "/public/cart.html" },
     { "source": "/checkout", "destination": "/public/checkout.html" },

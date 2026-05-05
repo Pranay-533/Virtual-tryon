@@ -1,18 +1,17 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": "public/**"
-      }
-    }
-  ],
+  "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/server.js"
-    }
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/admin", "destination": "/public/admin.html" },
+    { "source": "/cart", "destination": "/public/cart.html" },
+    { "source": "/checkout", "destination": "/public/checkout.html" },
+    { "source": "/catalog", "destination": "/public/catalog.html" },
+    { "source": "/dashboard", "destination": "/public/dashboard.html" },
+    { "source": "/login", "destination": "/public/login.html" },
+    { "source": "/orders", "destination": "/public/orders.html" },
+    { "source": "/register", "destination": "/public/register.html" },
+    { "source": "/css/(.*)", "destination": "/public/css/$1" },
+    { "source": "/images/(.*)", "destination": "/public/images/$1" },
+    { "source": "/", "destination": "/public/index.html" }
   ]
 }

@@ -11,20 +11,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Restore original URL for Vercel
-app.use((req, res, next) => {
-  if (req.query && req.query.v_path) {
-    req.url = `/api/${req.query.v_path}`;
-    delete req.query.v_path;
-  }
-  next();
-});
-
 // API Routes
-app.use('/api/auth', require('../routes/auth'));
-app.use('/api/products', require('../routes/products'));
-app.use('/api/admin', require('../routes/admin'));
-app.use('/api/orders', require('../routes/orders'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/products', require('./routes/products'));
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/orders', require('./routes/orders'));
 
 // Page routes — serve HTML pages
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));

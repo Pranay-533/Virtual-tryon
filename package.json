@@ -2,10 +2,10 @@
   "name": "virtual-tryon",
   "version": "1.0.0",
   "description": "Virtual Try-On Tool Backend",
-  "main": "server.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
